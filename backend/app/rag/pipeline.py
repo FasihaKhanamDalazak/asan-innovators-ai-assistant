@@ -3,6 +3,7 @@ from llama_index.core import PromptTemplate
 from app.core.llm import llm
 from app.rag.retriever import retrieve
 
+import json
 
 SYSTEM_PROMPT = """
 You are the official AI assistant for Asan Innovators.
@@ -14,11 +15,30 @@ Rules:
 - Never mention "context", "documents", or "knowledge base".
 - Never invent information.
 - Never guess.
-- If the answer cannot be found, reply exactly:
+- If the answer cannot be found, return:
 
-"I couldn't find that information about Asan Innovators."
+{
+  "answer": "I couldn't find that information about Asan Innovators.",
+  "follow_ups": []
+}
 
-Keep answers concise unless the user asks for more details.
+- Otherwise return ONLY valid JSON in this format:
+
+{
+  "answer": "Your answer here",
+  "follow_ups": [
+    "Follow-up question 1",
+    "Follow-up question 2"
+  ]
+}
+
+Rules for follow-ups:
+- Suggest 1 or 2 questions.
+- They must be relevant to the answer.
+- They must be answerable using the company information.
+- Do not repeat the user's question.
+- Do not include markdown.
+- Output ONLY JSON.
 
 --------------------
 Context:
@@ -27,12 +47,22 @@ Context:
 
 Question:
 {question}
-
-Answer:
 """
 
 prompt = PromptTemplate(SYSTEM_PROMPT)
 
+def clean_json(text: str) -> str:
+    text = text.strip()
+
+    if text.startswith("```"):
+        lines = text.splitlines()
+        lines = [
+            line for line in lines
+            if not line.startswith("```")
+        ]
+        text = "\n".join(lines)
+
+    return text
 
 def answer(question: str) -> str:
     """
@@ -56,4 +86,13 @@ def answer(question: str) -> str:
 
     response = llm.complete(final_prompt)
 
-    return response.text.strip()
+    try:
+        result = json.loads(
+            clean_json(response.text)
+        )
+        return result
+    except json.JSONDecodeError:
+        return {
+            "answer": response.text.strip(),
+            "follow_ups": []
+        }
