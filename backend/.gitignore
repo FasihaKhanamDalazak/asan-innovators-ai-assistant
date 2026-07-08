@@ -1,0 +1,30 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+# Python
+backend/.venv/
+**/__pycache__/
+*.py[cod]
+
+# Environment variables
+backend/.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (for future frontend)
+frontend/node_modules/
+frontend/dist/
