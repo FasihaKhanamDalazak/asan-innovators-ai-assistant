@@ -1,4 +1,4 @@
-from llama_index.embeddings.gemini import GeminiEmbedding
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.llms.google_genai import GoogleGenAI
 from google.genai import types
 
@@ -31,7 +31,6 @@ llm = GoogleGenAI(
     ),
 )
 
-embed_model = GeminiEmbedding(
-    model_name="models/text-embedding-004",
-    api_key=settings.GEMINI_API_KEY,
+embed_model = HuggingFaceEmbedding(
+    model_name="BAAI/bge-small-en-v1.5"
 )
