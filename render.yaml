@@ -5,7 +5,7 @@ services:
     runtime: python
     pythonVersion: 3.12
     buildCommand: pip install uv && uv sync
-    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uv run --active uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_UNBUILTINS
         value: /opt/render/project/python/bin/python -m 'importlib._bootstrap'
