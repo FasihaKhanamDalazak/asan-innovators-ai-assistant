@@ -32,6 +32,6 @@ llm = GoogleGenAI(
 )
 
 embed_model = GeminiEmbedding(
-    model_name="models/embedding-001",
+    model_name="models/text-embedding-004",
     api_key=settings.GEMINI_API_KEY,
 )
