@@ -14,10 +14,21 @@ from qdrant_client.http.models import Distance, VectorParams
 from app.core.config import get_settings
 from app.core.llm import embed_model, llm
 
+from collections import Counter
+from app.rag.metadata import enrich_documents
 
 settings = get_settings()
 
+def embedding_dimension() -> int:
+    """
+    Detect the embedding dimension automatically.
+    """
 
+    return len(
+        embed_model.get_text_embedding(
+            "asan innovators"
+        )
+    )
 def recreate_collection(client: QdrantClient) -> None:
     """Delete the collection if it exists and create a fresh one."""
 
@@ -35,16 +46,18 @@ def recreate_collection(client: QdrantClient) -> None:
     client.create_collection(
         collection_name=settings.COLLECTION_NAME,
         vectors_config=VectorParams(
-            size=384, # BAAI/bge-small-en-v1.5 embedding dimension
+            size=embedding_dimension(), # BAAI/bge-small-en-v1.5 embedding dimension
             distance=Distance.COSINE,
         ),
     )
 
 
-def load_documents():
-    """Load all markdown files from the data directory."""
+def load_documents() -> list:
+    """
+    Load every markdown document recursively and enrich metadata.
+    """
 
-    data_dir = Path("data")
+    data_dir = Path(settings.DATA_DIR).resolve()
 
     if not data_dir.exists():
         raise FileNotFoundError(
@@ -52,12 +65,33 @@ def load_documents():
         )
 
     documents = SimpleDirectoryReader(
-        input_dir=data_dir,
+        input_dir=str(data_dir),
+        recursive=True,
         required_exts=[".md"],
+        filename_as_id=True,
     ).load_data()
 
     if not documents:
-        raise ValueError("No markdown files found inside the data directory.")
+        raise ValueError(
+            "No markdown documents found."
+        )
+
+    documents = enrich_documents(
+        documents,
+        data_dir,
+    )
+
+    print("\nDiscovered knowledge base\n")
+
+    counts = Counter(
+        doc.metadata["category"]
+        for doc in documents
+    )
+
+    for category, total in sorted(counts.items()):
+        print(f"  {category:<15} {total:>3}")
+
+    print(f"\nTotal documents : {len(documents)}\n")
 
     return documents
 
@@ -69,13 +103,14 @@ def main() -> None:
     Settings.llm = llm
     Settings.embed_model = embed_model
     Settings.node_parser = SentenceSplitter(
-        chunk_size=512,
-        chunk_overlap=64,
+        chunk_size=settings.CHUNK_SIZE,
+        chunk_overlap=settings.CHUNK_OVERLAP,
+        include_metadata=True,
+        include_prev_next_rel=True,
     )
-
     # Load documents
     documents = load_documents()
-    print(f"Loaded {len(documents)} markdown files.")
+    
 
     # Connect to Qdrant
     client = QdrantClient(

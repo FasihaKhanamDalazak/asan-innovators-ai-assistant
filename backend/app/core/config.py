@@ -16,8 +16,23 @@ class Settings(BaseSettings):
 
     COLLECTION_NAME: str = "asan-innovators"
 
-    SIMILARITY_TOP_K: int = 5
-    SIMILARITY_CUTOFF: float = 0.7
+
+
+
+    CHUNK_SIZE: int = 512
+    CHUNK_OVERLAP: int = 64
+
+    DATA_DIR: str = "data"
+
+    RECREATE_COLLECTION: bool = True
+
+    RETRIEVE_TOP_K: int = 15
+    FINAL_TOP_K: int = 5
+    ENABLE_RETRIEVAL_LOGS: bool = True
+
+    MIN_SCORE: float = 0.6
+
+
 
 
 @lru_cache
