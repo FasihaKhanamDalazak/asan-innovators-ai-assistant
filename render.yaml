@@ -3,8 +3,8 @@ services:
     name: asan-ai-assistant-backend
     runtime: python
     pythonVersion: 3.12
-    buildCommand: pip install uv && uv sync --all-extras
-    startCommand: exec cd backend && uv run --active uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --upgrade pip && pip install -e ./backend
+    startCommand: exec cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: FRONTEND_URL
         value: https://asan-innovators-ai-assistant.vercel.app
