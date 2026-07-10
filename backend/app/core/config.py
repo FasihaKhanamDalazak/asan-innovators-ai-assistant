@@ -24,7 +24,7 @@ class Settings(BaseSettings):
 
     DATA_DIR: str = "data"
 
-    RECREATE_COLLECTION: bool = True
+    RECREATE_COLLECTION: bool = False
 
     RETRIEVE_TOP_K: int = 15
     FINAL_TOP_K: int = 5
