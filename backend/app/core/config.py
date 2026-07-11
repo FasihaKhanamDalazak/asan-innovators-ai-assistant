@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     )
 
     GEMINI_API_KEY: str
+    GEMINI_MODEL: str = "gemini-flash-latest"
 
     QDRANT_URL: str
     QDRANT_API_KEY: str
@@ -24,11 +25,11 @@ class Settings(BaseSettings):
 
     DATA_DIR: str = "data"
 
-    RECREATE_COLLECTION: bool = True
+    RECREATE_COLLECTION: bool = False
 
     RETRIEVE_TOP_K: int = 15
     FINAL_TOP_K: int = 5
-    ENABLE_RETRIEVAL_LOGS: bool = True
+    ENABLE_RETRIEVAL_LOGS: bool = False
 
     MIN_SCORE: float = 0.3
 

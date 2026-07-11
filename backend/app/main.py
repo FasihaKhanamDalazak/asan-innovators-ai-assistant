@@ -27,9 +27,14 @@ def root():
         "message": "Asan Innovators AI Assistant API"
     }
 
+@app.get("/health")
+def health():
+    return {"status": "healthy"}
+
 @app.post(
     "/chat",
     response_model=ChatResponse,
 )
 def chat_endpoint(request: ChatRequest):
     return chat(request)
+
