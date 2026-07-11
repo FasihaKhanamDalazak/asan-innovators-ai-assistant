@@ -1,4 +1,4 @@
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.llms.google_genai import GoogleGenAI
 from google.genai import types
 
@@ -23,7 +23,7 @@ RESPONSE_SCHEMA = {
 }
 
 llm = GoogleGenAI(
-    model="gemini-2.5-flash",
+    model="gemini-flash-latest",
     api_key=settings.GEMINI_API_KEY,
     generation_config=types.GenerateContentConfig(
         response_mime_type="application/json",
@@ -31,6 +31,4 @@ llm = GoogleGenAI(
     ),
 )
 
-embed_model = HuggingFaceEmbedding(
-    model_name="BAAI/bge-small-en-v1.5"
-)
+embed_model = FastEmbedEmbedding(model_name="BAAI/bge-small-en-v1.5")

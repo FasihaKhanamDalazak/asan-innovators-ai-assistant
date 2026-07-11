@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     FINAL_TOP_K: int = 5
     ENABLE_RETRIEVAL_LOGS: bool = True
 
-    MIN_SCORE: float = 0.6
+    MIN_SCORE: float = 0.3
 
 
 
