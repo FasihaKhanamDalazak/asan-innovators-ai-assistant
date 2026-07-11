@@ -1,4 +1,4 @@
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
 from llama_index.llms.google_genai import GoogleGenAI
 from google.genai import types
 
@@ -31,6 +31,6 @@ llm = GoogleGenAI(
     ),
 )
 
-embed_model = HuggingFaceEmbedding(
+embed_model = FastEmbedEmbedding(
     model_name="BAAI/bge-small-en-v1.5"
 )
