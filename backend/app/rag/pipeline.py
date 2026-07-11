@@ -1,6 +1,6 @@
 from llama_index.core import PromptTemplate
 
-from app.core.llm import llm
+from app.core.llm import llm, fallback_llm
 from app.rag.retriever import retrieve
 
 import json
@@ -480,64 +480,66 @@ def answer(question: str) -> dict[str, object]:
         question=question,
     )
 
-    try:
-        response = llm.complete(final_prompt)
-        print("\n========== RAW LLM RESPONSE ==========")
-        print(response.text)
-        print("======================================\n")
+    # Try primary model first, then fall back to a secondary model
+    # if the primary is overloaded or unavailable.
+    for attempt_llm, label in [(llm, "primary"), (fallback_llm, "fallback")]:
+        try:
+            response = attempt_llm.complete(final_prompt)
+            print(f"\n========== RAW LLM RESPONSE ({label}) ==========")
+            print(response.text)
+            print("======================================\n")
 
-        result = extract_json(response.text)
+            result = extract_json(response.text)
 
-        # Validate response
-        if not isinstance(result, dict):
-            raise ValueError("LLM did not return a JSON object.")
+            if not isinstance(result, dict):
+                raise ValueError("LLM did not return a JSON object.")
 
-        answer_text = result.get("answer")
+            answer_text = result.get("answer")
 
-        if isinstance(answer_text, str):
-            answer_text = sanitize_answer(answer_text)
+            if isinstance(answer_text, str):
+                answer_text = sanitize_answer(answer_text)
 
-        if not isinstance(answer_text, str) or not answer_text.strip():
-            raise ValueError("Missing answer.")
+            if not isinstance(answer_text, str) or not answer_text.strip():
+                raise ValueError("Missing answer.")
 
-        follow_ups = result.get("follow_ups", [])
+            follow_ups = result.get("follow_ups", [])
 
-        if not isinstance(follow_ups, list):
-            follow_ups = []
+            if not isinstance(follow_ups, list):
+                follow_ups = []
 
-        follow_ups = [
-            item.strip()
-            for item in follow_ups
-            if isinstance(item, str) and item.strip()
-        ]
+            follow_ups = [
+                item.strip()
+                for item in follow_ups
+                if isinstance(item, str) and item.strip()
+            ]
 
-        # Remove duplicates
-        seen = set()
-        unique = []
+            seen = set()
+            unique = []
 
-        for item in follow_ups:
-            lower = item.lower()
+            for item in follow_ups:
+                lower = item.lower()
+                if lower in seen:
+                    continue
+                seen.add(lower)
+                unique.append(item)
 
-            if lower in seen:
-                continue
+            return {
+                "answer": answer_text.strip(),
+                "follow_ups": unique[:2],
+            }
 
-            seen.add(lower)
-            unique.append(item)
+        except Exception as e:
+            print(f"\n========== PIPELINE ERROR ({label}) ==========")
+            print(e)
+            print("====================================\n")
+            # If this was the primary, loop continues to try fallback.
+            # If this was the fallback too, fall through to final return below.
+            continue
 
-        return {
-            "answer": answer_text.strip(),
-            "follow_ups": unique[:2],
-        }
-
-    except Exception as e:
-
-        print("\n========== PIPELINE ERROR ==========")
-        print(e)
-        print("====================================\n")
-
-        return {
-            "answer": (
-                "I couldn't generate a response at the moment. Please try again."
-            ),
-            "follow_ups": [],
-        }
+    return {
+        "answer": (
+            "Our assistant is experiencing high demand right now. "
+            "Please try again in a few seconds."
+        ),
+        "follow_ups": [],
+    }

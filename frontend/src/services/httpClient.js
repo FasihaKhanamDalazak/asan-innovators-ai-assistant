@@ -16,7 +16,7 @@ if (!API_BASE_URL) {
 
 const httpClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000, // 30s — generous enough for LLM-backed responses
+  timeout: 60000, // 60s — generous enough for LLM-backed responses
   headers: {
     "Content-Type": "application/json",
   },
